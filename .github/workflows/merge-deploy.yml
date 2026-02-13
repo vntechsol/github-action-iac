@@ -1,0 +1,58 @@
+name: "Merge PR to deploy"
+permissions:
+  id-token: write
+  contents: read
+  issues: read
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+env:
+  aws_role_to_assume: ${{ secrets.AWS_GITHUB_ACTION_ROLE }}
+  aws_default_region: 'eu-west-2'
+  terraform_version: ${{ secrets.TERRAFORM_VERSION }}
+  deploy_key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+jobs:
+  apply-plan:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: files/accounts/datascience/environments/eu-west-2/wise
+
+    steps:
+      - name: SSH Setup
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ env.deploy_key }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.aws_role_to_assume }}
+          aws-region: ${{ env.aws_default_region }}
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: 'main'
+          ssh-private-key: ${{env.deploy_key }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ secrets.terraform_version }}
+
+      - name: Terraform Init
+        id: init
+        run: terraform init -get=true -input=false -reconfigure
+
+      # Terraform apply
+      - name: Terraform Apply
+        id: Apply
+        run: terraform apply -auto-approve -lock=false -refresh=true
