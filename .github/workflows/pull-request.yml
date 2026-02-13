@@ -1,0 +1,72 @@
+name: "Push to the feature branch"
+permissions:
+  id-token: write
+  contents: read
+  issues: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Specifies the github environment name"
+        required: true
+        type: environment
+  push:
+    branches:
+      - '*'
+
+  pull_request:
+    branches:
+      - main
+
+env:
+  aws_role_to_assume: ${{ secrets.AWS_GITHUB_ACTION_ROLE }}
+  aws_default_region: 'eu-west-2'
+  terraform_version: ${{ secrets.TERRAFORM_VERSION }}
+  deploy_key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+jobs:
+  build-plan:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: files/accounts/datascience/environments/eu-west-2/wise
+
+    steps:
+      - name: SSH Setup
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ env.deploy_key }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.aws_role_to_assume }}
+          aws-region: ${{ env.aws_default_region }}
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.terraform_version }}
+
+      - name: Terraform Init
+        id: init
+        run: terraform init -get=true -input=false -reconfigure
+
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -recursive -check -diff
+
+      - name: Terraform Validate
+        id: validate
+        # Run even if formatting fails
+        if: success() || failure()
+        run: terraform validate
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -lock=false -refresh=true
