@@ -6,6 +6,11 @@ permissions:
 
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to run tests against'
+        type: environment
+        required: true
   push:
     branches:
       - main
@@ -14,7 +19,6 @@ env:
   aws_role_to_assume: ${{ secrets.AWS_GITHUB_ACTION_ROLE }}
   aws_default_region: 'eu-west-2'
   terraform_version: ${{ secrets.TERRAFORM_VERSION }}
-  deploy_key: ${{ secrets.DEPLOY_SSH_KEY }}
 
 jobs:
   apply-plan:
@@ -25,10 +29,17 @@ jobs:
         working-directory: files/accounts/datascience/environments/eu-west-2/wise
 
     steps:
+      - run: |
+          echo "Environment: $ENVIRONMENT"
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+
       - name: SSH Setup
         uses: webfactory/ssh-agent@v0.7.0
         with:
-          ssh-private-key: ${{ env.deploy_key }}
+          ssh-private-key: |
+            ${{ secrets.DEPLOY_SSH_KEY }}
+            #${{ secrets.LN_SSH_KEY }}
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -41,7 +52,9 @@ jobs:
         with:
           fetch-depth: 0
           ref: 'main'
-          ssh-private-key: ${{env.deploy_key }}
+          ssh-private-key: |
+            ${{ secrets.DEPLOY_SSH_KEY }}
+            #${{ secrets.LN_SSH_KEY }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
