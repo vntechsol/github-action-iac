@@ -14,7 +14,7 @@ env:
   aws_role_to_assume: ${{ secrets.AWS_GITHUB_ACTION_ROLE }}
   aws_default_region: 'eu-west-2'
   terraform_version: ${{ secrets.TERRAFORM_VERSION }}
-  deploy_key: ${{ secrets.DEPLOY_SSH_KEY }}
+  environment: infra-test
 
 jobs:
   apply-plan:
@@ -28,7 +28,9 @@ jobs:
       - name: SSH Setup
         uses: webfactory/ssh-agent@v0.7.0
         with:
-          ssh-private-key: ${{ env.deploy_key }}
+          ssh-private-key: |
+            ${{ secrets.DEPLOY_SSH_KEY }}
+            #${{ secrets.LN_SSH_KEY }}
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -39,13 +41,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          gh_environment: ${{ env.environment }}
           fetch-depth: 0
           ref: 'main'
-          ssh-private-key: ${{env.deploy_key }}
+          ssh-private-key: |
+            ${{ secrets.DEPLOY_SSH_KEY }}
+            #${{ secrets.LN_SSH_KEY }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
+          gh_environment: ${{ env.environment }}
           terraform_version: ${{ secrets.terraform_version }}
 
       - name: Terraform Init
