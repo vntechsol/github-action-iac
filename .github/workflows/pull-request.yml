@@ -18,7 +18,6 @@ env:
   aws_role_to_assume: ${{ secrets.AWS_GITHUB_ACTION_ROLE }}
   aws_default_region: 'eu-west-2'
   terraform_version: ${{ secrets.TERRAFORM_VERSION }}
-  environment: infra-test
 
 jobs:
   build-plan:
@@ -44,13 +43,10 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          gh_environment: ${{ env.environment }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          gh_environment: ${{ env.environment }}
           terraform_version: ${{ env.terraform_version }}
 
       - name: Terraform Init
