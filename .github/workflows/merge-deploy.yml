@@ -32,7 +32,7 @@ jobs:
       - name: Verify Confirmation
         if: github.event.inputs.confirm != 'apply'
         run: |
-          echo "Confirmation failed. You must type 'destroy' to proceed."
+          echo "Confirmation failed. You must type 'apply' to proceed."
           exit 1
 
       - name: SSH Setup
