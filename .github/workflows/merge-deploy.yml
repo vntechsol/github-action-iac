@@ -6,6 +6,11 @@ permissions:
 
 on:
   workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "destroy" to confirm'
+        required: true
+
   push:
     branches:
       - main
@@ -17,23 +22,18 @@ env:
 
 jobs:
   deploy:
-    name: "Deploy ${{ matrix.environment }}"
     runs-on: ubuntu-latest
-    strategy:
-      max-parallel: 1
-      fail-fast: true
-      matrix:
-        environment: ["infra-test"]
     defaults:
       run:
         shell: bash
         working-directory: files/accounts/datascience/environments/eu-west-2/wise
 
     steps:
-      - name: "Deploy ${{ matrix.environment }} step"
-        run: echo "deploying ${ENVIRONMENT}"
-        env:
-          ENVIRONMENT: ${{ matrix.environment }}
+      - name: Verify Confirmation
+        if: github.event.inputs.confirm != 'apply'
+        run: |
+          echo "Confirmation failed. You must type 'destroy' to proceed."
+          exit 1
 
       - name: SSH Setup
         uses: webfactory/ssh-agent@v0.7.0
