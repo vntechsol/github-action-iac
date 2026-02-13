@@ -26,3 +26,5 @@ ssh -vT git@github.com
 
 https://nts.strzibny.name/how-to-use-ssh-private-keys-with-password/
 https://github.com/webfactory/ssh-agent
+
+https://learn.microsoft.com/en-us/azure/deployment-environments/tutorial-deploy-environments-in-cicd-github

@@ -20,7 +20,7 @@ env:
   terraform_version: ${{ secrets.TERRAFORM_VERSION }}
 
 jobs:
-  build-plan:
+  validate-build:
     runs-on: ubuntu-latest
     defaults:
       run:

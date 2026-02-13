@@ -6,11 +6,6 @@ permissions:
 
 on:
   workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Environment to run tests against'
-        type: environment
-        required: true
   push:
     branches:
       - main
@@ -21,18 +16,24 @@ env:
   terraform_version: ${{ secrets.TERRAFORM_VERSION }}
 
 jobs:
-  apply-plan:
+  deploy:
+    name: "Deploy ${{ matrix.environment }}"
     runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+      fail-fast: true
+      matrix:
+        environment: ["infra-test"]
     defaults:
       run:
         shell: bash
         working-directory: files/accounts/datascience/environments/eu-west-2/wise
 
     steps:
-      - run: |
-          echo "Environment: $ENVIRONMENT"
+      - name: "Deploy ${{ matrix.environment }} step"
+        run: echo "deploying ${ENVIRONMENT}"
         env:
-          ENVIRONMENT: ${{ inputs.environment }}
+          ENVIRONMENT: ${{ matrix.environment }}
 
       - name: SSH Setup
         uses: webfactory/ssh-agent@v0.7.0
