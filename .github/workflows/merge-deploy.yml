@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       confirm:
-        description: 'Type "destroy" to confirm'
+        description: 'Type "approve" to confirm'
         required: true
 
   push:
@@ -30,9 +30,9 @@ jobs:
 
     steps:
       - name: Verify Confirmation
-        if: github.event.inputs.confirm != 'apply'
+        if: github.event.inputs.confirm != 'approve'
         run: |
-          echo "Confirmation failed. You must type 'apply' to proceed."
+          echo "Confirmation failed. You must type 'approve' to proceed."
           exit 1
 
       - name: SSH Setup
