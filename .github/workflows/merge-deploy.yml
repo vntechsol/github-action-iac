@@ -3,66 +3,32 @@ permissions:
   id-token: write
   contents: read
   issues: read
-
 on:
   workflow_dispatch:
   push:
     branches:
       - main
 
-env:
-  aws_role_to_assume: ${{ secrets.AWS_GITHUB_ACTION_ROLE }}
-  aws_default_region: 'eu-west-2'
-  terraform_version: ${{ secrets.TERRAFORM_VERSION }}
-
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
-        working-directory: files/accounts/datascience/environments/eu-west-2/wise
+  Plan:
+    if: github.event.deployment.environment == 'infra-test' && github.event.deployment.payload.version
+    uses: ./.github/workflows/pull-request.yml
+    with:
+      path: files/accounts/datascience/environments/eu-west-2/wise
+      gh_environment: infra-test
+    secrets:
+      aws_role_to_assume: ${{ secrets.AWS_GITHUB_ACTION_ROLE }}
+      aws_default_region: eu-west-2
+      terraform_version: ${{ secrets.TERRAFORM_VERSION }}
 
-    steps:
-      - uses: trstringer/manual-approval@v1
-        with:
-          secret: ${{ github.TOKEN }} #secrets.GITHUB_TOKEN 
-          approvers: infra-test
-          minimum-approvals: 1
-          
-      - name: SSH Setup
-        uses: webfactory/ssh-agent@v0.7.0
-        with:
-          ssh-private-key: |
-            ${{ secrets.DEPLOY_SSH_KEY }}
-            #${{ secrets.LN_SSH_KEY }}
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ env.aws_role_to_assume }}
-          aws-region: ${{ env.aws_default_region }}
-
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: 'main'
-          ssh-private-key: |
-            ${{ secrets.DEPLOY_SSH_KEY }}
-            #${{ secrets.LN_SSH_KEY }}
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ secrets.terraform_version }}
-
-      - name: Terraform Init
-        id: init
-        run: terraform init -get=true -input=false -reconfigure
-
-      # Terraform apply
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/"main"' && github.event_name == 'push'
-        id: apply
-        run: terraform apply -auto-approve -lock=false -refresh=true
+  Deploy:
+    needs: Plan
+    if: github.event.deployment.environment == 'infra-test' && github.event.deployment.payload.version
+    uses: ./.github/workflows/terraform-apply.yml
+    with:
+      path: files/accounts/datascience/environments/eu-west-2/wise
+      gh_environment: infra-test
+    secrets:
+      aws_role_to_assume: ${{ secrets.AWS_GITHUB_ACTION_ROLE }}
+      aws_default_region: eu-west-2
+      terraform_version: ${{ secrets.TERRAFORM_VERSION }}
