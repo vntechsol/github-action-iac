@@ -26,7 +26,8 @@ jobs:
     steps:
       - uses: trstringer/manual-approval@v1
         with:
-          gh_environment: infra-test
+          approvers: infra-test
+          minimum-approvals: 1
           
       - name: SSH Setup
         uses: webfactory/ssh-agent@v0.7.0
