@@ -26,6 +26,7 @@ jobs:
     steps:
       - uses: trstringer/manual-approval@v1
         with:
+          secret: ${{ github.TOKEN }} #secrets.GITHUB_TOKEN 
           approvers: infra-test
           minimum-approvals: 1
           
