@@ -5,14 +5,17 @@ permissions:
   issues: read
 
 on:
-  workflow_dispatch:
-    
+  workflow_call:
+    inputs:
+      gh_environment:
+        description: "specifies a name"
+        required: true
+        type: string
   push:
     branches:
       - main
 
 env:
-  gh_environment: 'infra-test'
   aws_role_to_assume: ${{ secrets.AWS_GITHUB_ACTION_ROLE }}
   aws_default_region: eu-west-2
   terraform_version: ${{ secrets.TERRAFORM_VERSION }}
@@ -23,7 +26,7 @@ env:
 jobs:
   apply-plan:
     runs-on: ubuntu-latest
-    environment: ${{ env.gh_environment }}
+    environment: ${{ github.event.inputs.gh_environment }}
     defaults:
       run:
         shell: bash
