@@ -5,12 +5,14 @@ permissions:
   issues: read
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
-      gh_environment:
-        description: "specifies a name"
-        required: true
-        type: string
+      name:
+        type: choice
+        description: Environment name
+        options: 
+        - infra-test
+        - infra-prod
   push:
     branches:
       - main
@@ -65,4 +67,5 @@ jobs:
       # Terraform apply
       - name: Terraform Apply
         id: Apply
+        if: github.ref == 'refs/heads/"main"' && github.event_name == 'push' && github.event.inputs.name == 'infra-test'
         run: terraform apply -auto-approve -lock=false -refresh=true
