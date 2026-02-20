@@ -8,14 +8,10 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        type: choice
+        type: string
         required: true
         description: Environment
-        options:
-          - ''
-          - infra-test
-          - infra-prod
-        default: ''
+        default: 'infra-test'
 
   push:
     branches:
