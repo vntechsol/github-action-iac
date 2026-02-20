@@ -13,6 +13,8 @@ on:
         options: 
         - infra-test
         - infra-prod
+      environment:
+        type: environment
   push:
     branches:
       - main
