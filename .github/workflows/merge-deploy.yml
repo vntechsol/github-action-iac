@@ -13,8 +13,8 @@ on:
         description: Environment
         options:
           - ''
-          - 'infra-test'
-          - 'infra-prod'
+          - infra-test
+          - infra-prod
         default: ''
 
   push:
