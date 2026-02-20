@@ -10,19 +10,6 @@ on:
       - main
 
 jobs:
-  Plan:
-    uses: ./.github/workflows/pull-request.yml
-    with:
-      path: files/accounts/datascience/environments/eu-west-2/wise
-      gh_environment: infra-test
-    secrets:
-      aws_role_to_assume: ${{ secrets.AWS_GITHUB_ACTION_ROLE }}
-      aws_default_region: eu-west-2
-      terraform_version: ${{ secrets.TERRAFORM_VERSION }}
-      ssh_private_key:
-        ${{ secrets.SSH_PRIVATE_KEY }}
-        #${{ secrets.LN_SSH_PRIVATE_KEY }}
-
   Deploy:
     needs: Plan
     uses: ./.github/workflows/terraform_apply.yml
