@@ -28,7 +28,6 @@ env:
 jobs:
   apply-plan:
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.gh_environment }}
     defaults:
       run:
         shell: bash
@@ -67,5 +66,5 @@ jobs:
       # Terraform apply
       - name: Terraform Apply
         id: Apply
-        if: github.ref == 'refs/heads/"main"' && github.event_name == 'push' && github.event.inputs.name == 'infra-test'
+        if: github.ref == 'refs/heads/"main"' && github.event_name == 'push' && github.event.inputs.name
         run: terraform apply -auto-approve -lock=false -refresh=true
