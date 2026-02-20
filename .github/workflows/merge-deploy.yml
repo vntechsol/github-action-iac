@@ -7,15 +7,16 @@ permissions:
 on:
   workflow_dispatch:
     inputs:
-      name:
+      environment:
         type: choice
-        description: Environment name
-        options: 
-        - infra-test
-        - infra-prod
-      gh_environment:
-        type: environment
-        default: infra-test
+        required: true
+        description: Environment
+        options:
+          - ''
+          - infra-test
+          - infra-prod
+        default: ''
+
   push:
     branches:
       - main
@@ -31,7 +32,7 @@ env:
 jobs:
   apply-plan:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.gh_environment }}
+    environment: ${{ inputs.environment }}
     defaults:
       run:
         shell: bash
