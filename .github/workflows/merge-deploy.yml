@@ -1,0 +1,70 @@
+name: "Merge PR to deploy"
+permissions:
+  id-token: write
+  contents: read
+  issues: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      gh_environment:
+        description: "Specifies the GitHub deployment environment."
+        required: true
+        type: string
+
+  push:
+    branches:
+      - main
+
+env:
+  aws_role_to_assume: ${{ secrets.AWS_GITHUB_ACTION_ROLE }}
+  aws_default_region: eu-west-2
+  terraform_version: ${{ secrets.TERRAFORM_VERSION }}
+  ssh_private_key:
+    ${{ secrets.SSH_PRIVATE_KEY }}
+    #${{ secrets.LN_SSH_PRIVATE_KEY }}
+  gh_environment: infra-test
+
+jobs:
+  apply-plan:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.gh_environment }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: files/accounts/datascience/environments/eu-west-2/wise
+
+    steps:
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ env.ssh_private_key }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.aws_role_to_assume }}
+          aws-region: ${{ env.aws_default_region }}
+
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: 'main'
+          ssh-key: ${{ env.ssh_private_key }}
+
+      # Install the selected version of Terraform CLI 
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.terraform_version }}
+
+      - name: Terraform Init
+        id: init
+        run: terraform init -get=true -input=false -reconfigure
+
+      # Terraform apply
+      - name: Terraform Apply
+        id: Apply
+        run: terraform apply -auto-approve -lock=false -refresh=true
