@@ -5,13 +5,12 @@ permissions:
   issues: read
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       gh_environment:
-        description: "Specifies the GitHub deployment environment."
+        description: "specifies a name"
         required: true
         type: string
-
   push:
     branches:
       - main
@@ -23,12 +22,11 @@ env:
   ssh_private_key:
     ${{ secrets.SSH_PRIVATE_KEY }}
     #${{ secrets.LN_SSH_PRIVATE_KEY }}
-  gh_environment: infra-test
 
 jobs:
   apply-plan:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.gh_environment }}
+    environment: ${{ github.event.inputs.gh_environment }}
     defaults:
       run:
         shell: bash
