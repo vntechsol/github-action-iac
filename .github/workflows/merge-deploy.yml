@@ -6,24 +6,19 @@ permissions:
 
 on:
   workflow_dispatch:
-    inputs:
-      gh_environment:
-        description: "Specifies the GitHub deployment environment."
-        required: true
-        type: string
-
+    
   push:
     branches:
       - main
 
 env:
+  gh_environment: 'infra-test'
   aws_role_to_assume: ${{ secrets.AWS_GITHUB_ACTION_ROLE }}
   aws_default_region: eu-west-2
   terraform_version: ${{ secrets.TERRAFORM_VERSION }}
   ssh_private_key:
     ${{ secrets.SSH_PRIVATE_KEY }}
     #${{ secrets.LN_SSH_PRIVATE_KEY }}
-  gh_environment: infra-test
 
 jobs:
   apply-plan:
