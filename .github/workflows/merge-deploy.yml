@@ -8,10 +8,14 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        type: string
+        type: choice
         required: true
         description: Environment
-        default: 'infra-test'
+        options:
+          - ''
+          - 'infra-test'
+          - 'infra-prod'
+        default: ''
 
   push:
     branches:
@@ -67,5 +71,5 @@ jobs:
       # Terraform apply
       - name: Terraform Apply
         id: Apply
-        if: github.ref == 'refs/heads/"main"' && github.event_name == 'push'
+        #if: github.ref == 'refs/heads/"main"' && github.event_name == 'push'
         run: terraform apply -auto-approve -lock=false -refresh=true
